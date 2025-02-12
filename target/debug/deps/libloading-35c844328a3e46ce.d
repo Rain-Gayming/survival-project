@@ -1,0 +1,12 @@
+/home/rain/programming/rust/survival-project/target/debug/deps/liblibloading-35c844328a3e46ce.rmeta: /home/rain/.cargo/registry/src/index.crates.io-6f17d22bba15001f/libloading-0.8.6/src/lib.rs /home/rain/.cargo/registry/src/index.crates.io-6f17d22bba15001f/libloading-0.8.6/src/changelog.rs /home/rain/.cargo/registry/src/index.crates.io-6f17d22bba15001f/libloading-0.8.6/src/os/mod.rs /home/rain/.cargo/registry/src/index.crates.io-6f17d22bba15001f/libloading-0.8.6/src/os/unix/mod.rs /home/rain/.cargo/registry/src/index.crates.io-6f17d22bba15001f/libloading-0.8.6/src/os/unix/consts.rs /home/rain/.cargo/registry/src/index.crates.io-6f17d22bba15001f/libloading-0.8.6/src/util.rs /home/rain/.cargo/registry/src/index.crates.io-6f17d22bba15001f/libloading-0.8.6/src/error.rs /home/rain/.cargo/registry/src/index.crates.io-6f17d22bba15001f/libloading-0.8.6/src/safe.rs
+
+/home/rain/programming/rust/survival-project/target/debug/deps/libloading-35c844328a3e46ce.d: /home/rain/.cargo/registry/src/index.crates.io-6f17d22bba15001f/libloading-0.8.6/src/lib.rs /home/rain/.cargo/registry/src/index.crates.io-6f17d22bba15001f/libloading-0.8.6/src/changelog.rs /home/rain/.cargo/registry/src/index.crates.io-6f17d22bba15001f/libloading-0.8.6/src/os/mod.rs /home/rain/.cargo/registry/src/index.crates.io-6f17d22bba15001f/libloading-0.8.6/src/os/unix/mod.rs /home/rain/.cargo/registry/src/index.crates.io-6f17d22bba15001f/libloading-0.8.6/src/os/unix/consts.rs /home/rain/.cargo/registry/src/index.crates.io-6f17d22bba15001f/libloading-0.8.6/src/util.rs /home/rain/.cargo/registry/src/index.crates.io-6f17d22bba15001f/libloading-0.8.6/src/error.rs /home/rain/.cargo/registry/src/index.crates.io-6f17d22bba15001f/libloading-0.8.6/src/safe.rs
+
+/home/rain/.cargo/registry/src/index.crates.io-6f17d22bba15001f/libloading-0.8.6/src/lib.rs:
+/home/rain/.cargo/registry/src/index.crates.io-6f17d22bba15001f/libloading-0.8.6/src/changelog.rs:
+/home/rain/.cargo/registry/src/index.crates.io-6f17d22bba15001f/libloading-0.8.6/src/os/mod.rs:
+/home/rain/.cargo/registry/src/index.crates.io-6f17d22bba15001f/libloading-0.8.6/src/os/unix/mod.rs:
+/home/rain/.cargo/registry/src/index.crates.io-6f17d22bba15001f/libloading-0.8.6/src/os/unix/consts.rs:
+/home/rain/.cargo/registry/src/index.crates.io-6f17d22bba15001f/libloading-0.8.6/src/util.rs:
+/home/rain/.cargo/registry/src/index.crates.io-6f17d22bba15001f/libloading-0.8.6/src/error.rs:
+/home/rain/.cargo/registry/src/index.crates.io-6f17d22bba15001f/libloading-0.8.6/src/safe.rs:

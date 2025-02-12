@@ -3,8 +3,9 @@ use glium::Surface;
 #[derive(Copy, Clone)]
 struct Vertex {
     position: [f32; 2],
+    colour: [f32; 3],
 }
-implement_vertex!(Vertex, position);
+implement_vertex!(Vertex, position, colour);
 
 #[macro_use]
 extern crate glium;
@@ -23,12 +24,15 @@ fn main() {
     // vertices for a triangle
     let vertex1 = Vertex {
         position: [-0.5, -0.5],
+        colour: [0.0, 0.0, 1.0],
     };
     let vertex2 = Vertex {
         position: [0.5, 0.5],
+        colour: [0.0, 1.0, 0.0],
     };
     let vertex3 = Vertex {
         position: [0.5, -0.5],
+        colour: [0.0, 0.0, 0.0],
     };
     // adds the vertices to a shape array
     let shape = vec![vertex1, vertex2, vertex3];
@@ -45,7 +49,10 @@ fn main() {
         uniform float x_off; 
         uniform mat4 matrix;
 
+        in vec3 colour;
+        out vec3 vertex_colour;
         void main() {
+            vertex_colour = colour; 
             vec2 pos = position;
             pos.x += x_off;
             gl_Position = matrix * vec4(position, 0.0, 1.0);
@@ -57,10 +64,11 @@ fn main() {
 
     #version 140
         
-        out vec4 color;
+        in vec3 vertex_colour;
+        out vec4 colour;
 
         void main() {
-            color = vec4(1.0, 0.0, 0.0, 1.0);
+            colour = vec4(vertex_colour, 1.0);
          }
     "#;
 

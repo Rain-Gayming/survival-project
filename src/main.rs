@@ -3,9 +3,9 @@ use glium::Surface;
 #[derive(Copy, Clone)]
 struct Vertex {
     position: [f32; 2],
-    colour: [f32; 3],
+    tex_coords: [f32; 2],
 }
-implement_vertex!(Vertex, position, colour);
+implement_vertex!(Vertex, position, tex_coords);
 
 #[macro_use]
 extern crate glium;
@@ -21,55 +21,85 @@ fn main() {
     frame.clear_color(1.0, 1.0, 1.0, 1.0);
     frame.finish().unwrap();
 
-    // vertices for a triangle
-    let vertex1 = Vertex {
-        position: [-0.5, -0.5],
-        colour: [0.0, 0.0, 1.0],
-    };
-    let vertex2 = Vertex {
-        position: [0.5, 0.5],
-        colour: [0.0, 1.0, 0.0],
-    };
-    let vertex3 = Vertex {
-        position: [0.5, -0.5],
-        colour: [0.0, 0.0, 0.0],
-    };
-    // adds the vertices to a shape array
-    let shape = vec![vertex1, vertex2, vertex3];
+    // gets the texture atlas
+    let image = image::load(
+        std::io::Cursor::new(&include_bytes!("../assets/textures/texture-atlas.png")),
+        image::ImageFormat::Png,
+    )
+    .unwrap()
+    .to_rgba8();
+
+    // gets its coordinates
+    let image_dimensions = image.dimensions();
+    let image =
+        glium::texture::RawImage2d::from_raw_rgba_reversed(&image.into_raw(), image_dimensions);
+
+    // creates a texture from the image
+    let texture = glium::texture::Texture2d::new(&display, image).unwrap();
+
+    let shape = vec![
+        // top left
+        Vertex {
+            position: [0.0, 1.0],
+            tex_coords: [0.0, 16.0],
+        },
+        // bottom left
+        Vertex {
+            position: [0.0, 0.0],
+            tex_coords: [0.0, 0.0],
+        },
+        // top right
+        Vertex {
+            position: [1.0, 1.0],
+            tex_coords: [16.0, 16.0],
+        },
+        // bottom left
+        Vertex {
+            position: [0.0, 0.0],
+            tex_coords: [0.0, 0.0],
+        },
+        // top right
+        Vertex {
+            position: [1.0, 1.0],
+            tex_coords: [16.0, 16.0],
+        },
+        // bottom right
+        Vertex {
+            position: [1.0, 0.0],
+            tex_coords: [16.0, 0.0],
+        },
+    ];
 
     // creates a vertex buffer and adds teh shape to the display
     let vertex_buffer = glium::VertexBuffer::new(&display, &shape).unwrap();
     // creates a blank set of indices
     let indices = glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList);
 
-    // creates a vertex shader
     let vertex_shader_src = r#"
         #version 140
+
         in vec2 position;
-        uniform float x_off; 
+        in vec2 tex_coords;
+        out vec2 v_tex_coords;
+
         uniform mat4 matrix;
 
-        in vec3 colour;
-        out vec3 vertex_colour;
         void main() {
-            vertex_colour = colour; 
-            vec2 pos = position;
-            pos.x += x_off;
+            v_tex_coords = tex_coords / 16;
             gl_Position = matrix * vec4(position, 0.0, 1.0);
         }
     "#;
-
-    // adds colour to the shape
     let fragment_shader_src = r#"
+        #version 140
 
-    #version 140
-        
-        in vec3 vertex_colour;
-        out vec4 colour;
+        in vec2 v_tex_coords;
+        out vec4 color;
+
+        uniform sampler2D tex;
 
         void main() {
-            colour = vec4(vertex_colour, 1.0);
-         }
+            color = texture(tex, v_tex_coords);
+        }
     "#;
 
     // gives glium the shaders made
@@ -99,11 +129,12 @@ fn main() {
 
                         let uniforms = uniform! {
                             matrix: [
-                            [1.0, 0.0, 0.0, 0.0],
-                            [0.0, 1.0, 0.0, 0.0],
-                            [0.0, 0.0, 1.0, 0.0],
-                            [  x, 0.0, 0.0, 1.0f32],
-                        ]
+                                [0.5, 0.0, 0.0, 0.0],
+                                [0.0, 0.5, 0.0, 0.0],
+                                [0.0, 0.0, 0.5, 0.0],
+                                [  x, 0.0, 0.0, 1.0f32],
+                            ],
+                            tex: &texture,
                         };
 
                         target

@@ -1,22 +1,29 @@
+mod world;
 use glium::Surface;
+
+use world::voxel::*;
 
 #[derive(Copy, Clone)]
 struct Vertex {
-    position: [f32; 2],
-    tex_coords: [f32; 2],
+    position: [u8; 2],
+    texture_coords: [i8; 2],
 }
-implement_vertex!(Vertex, position, tex_coords);
+implement_vertex!(Vertex, position, texture_coords);
 
 #[macro_use]
 extern crate glium;
 fn main() {
+    // update loop
     let event_loop = glium::winit::event_loop::EventLoop::builder()
         .build()
         .expect("event loop building");
+
+    // creates the window
     let (window, display) = glium::backend::glutin::SimpleWindowBuilder::new()
-        .with_title("Glium tutorial #3")
+        .with_title("Voxel Engine")
         .build(&event_loop);
 
+    // draws the background
     let mut frame = display.draw();
     frame.clear_color(1.0, 1.0, 1.0, 1.0);
     frame.finish().unwrap();
@@ -37,41 +44,58 @@ fn main() {
     // creates a texture from the image
     let texture = glium::texture::Texture2d::new(&display, image).unwrap();
 
-    let shape = vec![
+    // new voxel
+    let new_voxel = Voxel{
+        block_type: BlockType::Dirt,
+        texture_position: [4, -2]
+    };
+
+    let texture_coords = [
+        //top left
+        [new_voxel.texture_position[0] - 1, new_voxel.texture_position[1]],
+        //bottom left
+        [new_voxel.texture_position[0] - 1, new_voxel.texture_position[1] - 1],
+        //top right
+        [new_voxel.texture_position[0], new_voxel.texture_position[1]],
+        //bottom right
+        [new_voxel.texture_position[0], new_voxel.texture_position[1] - 1],
+    ];
+
+    let face = vec![
         // top left
         Vertex {
-            position: [0.0, 1.0],
-            tex_coords: [0.0, 16.0],
+            position: [0, 1],
+            texture_coords: texture_coords[0],
         },
         // bottom left
         Vertex {
-            position: [0.0, 0.0],
-            tex_coords: [0.0, 0.0],
+            position: [0, 0],
+            texture_coords: texture_coords[1],
         },
         // top right
         Vertex {
-            position: [1.0, 1.0],
-            tex_coords: [16.0, 16.0],
+            position: [1, 1],
+            texture_coords: texture_coords[2],
         },
         // bottom left
-        Vertex {
-            position: [0.0, 0.0],
-            tex_coords: [0.0, 0.0],
+        Vertex { 
+            position: [0, 0],
+            texture_coords: texture_coords[1],
         },
         // top right
         Vertex {
-            position: [1.0, 1.0],
-            tex_coords: [16.0, 16.0],
+            position: [1, 1],
+            texture_coords: texture_coords[2],
         },
         // bottom right
         Vertex {
-            position: [1.0, 0.0],
-            tex_coords: [16.0, 0.0],
+            position: [1, 0],
+            texture_coords: texture_coords[3],
         },
     ];
 
     // creates a vertex buffer and adds teh shape to the display
-    let vertex_buffer = glium::VertexBuffer::new(&display, &shape).unwrap();
+    let vertex_buffer = glium::VertexBuffer::new(&display, &face).unwrap();
     // creates a blank set of indices
     let indices = glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList);
 
@@ -79,26 +103,28 @@ fn main() {
         #version 140
 
         in vec2 position;
-        in vec2 tex_coords;
-        out vec2 v_tex_coords;
+        in vec2 texture_coords;
+        out vec2 v_texture_coords;
 
         uniform mat4 matrix;
 
         void main() {
-            v_tex_coords = tex_coords / 16;
+            // texture_coords / 16 gets the correct sprite.
+
+            v_texture_coords = (texture_coords / 16);
             gl_Position = matrix * vec4(position, 0.0, 1.0);
         }
     "#;
     let fragment_shader_src = r#"
         #version 140
 
-        in vec2 v_tex_coords;
+        in vec2 v_texture_coords;
         out vec4 color;
 
         uniform sampler2D tex;
 
         void main() {
-            color = texture(tex, v_tex_coords);
+            color = texture(tex, v_texture_coords);
         }
     "#;
 
@@ -106,8 +132,6 @@ fn main() {
     let program =
         glium::Program::from_source(&display, vertex_shader_src, fragment_shader_src, None)
             .unwrap();
-
-    let mut t: f32 = 0.0;
 
     // draw the triangle here
     #[allow(deprecated)]
@@ -121,18 +145,16 @@ fn main() {
                     // We now need to render everyting in response to a RedrawRequested event due to the animation
                     glium::winit::event::WindowEvent::RedrawRequested => {
                         // we update `t`
-                        t += 0.02;
-                        let x = t.sin() * 0.5;
 
                         let mut target = display.draw();
                         target.clear_color(0.0, 0.0, 1.0, 1.0);
 
                         let uniforms = uniform! {
                             matrix: [
-                                [0.5, 0.0, 0.0, 0.0],
-                                [0.0, 0.5, 0.0, 0.0],
-                                [0.0, 0.0, 0.5, 0.0],
-                                [  x, 0.0, 0.0, 1.0f32],
+                                [0.25, 0.0, 0.0, 0.0],
+                                [0.0, 0.25, 0.0, 0.0],
+                                [0.0, 0.0, 0.25, 0.0],
+                                [ 0.0, 0.0, 0.0, 1.25f32],
                             ],
                             tex: &texture,
                         };

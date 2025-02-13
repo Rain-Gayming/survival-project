@@ -1,5 +1,8 @@
 mod world;
-use glium::Surface;
+use glium::{
+    uniforms::{MagnifySamplerFilter, MinifySamplerFilter},
+    Surface,
+};
 
 use world::voxel::*;
 
@@ -45,20 +48,29 @@ fn main() {
     let texture = glium::texture::Texture2d::new(&display, image).unwrap();
 
     // new voxel
-    let new_voxel = Voxel{
+    let new_voxel = Voxel {
         block_type: BlockType::Dirt,
-        texture_position: [4, -2]
+        texture_position: [1, 16],
     };
 
     let texture_coords = [
         //top left
-        [new_voxel.texture_position[0] - 1, new_voxel.texture_position[1]],
+        [
+            new_voxel.texture_position[0] - 1,
+            new_voxel.texture_position[1],
+        ],
         //bottom left
-        [new_voxel.texture_position[0] - 1, new_voxel.texture_position[1] - 1],
+        [
+            new_voxel.texture_position[0] - 1,
+            new_voxel.texture_position[1] - 1,
+        ],
         //top right
         [new_voxel.texture_position[0], new_voxel.texture_position[1]],
         //bottom right
-        [new_voxel.texture_position[0], new_voxel.texture_position[1] - 1],
+        [
+            new_voxel.texture_position[0],
+            new_voxel.texture_position[1] - 1,
+        ],
     ];
 
     let face = vec![
@@ -78,7 +90,7 @@ fn main() {
             texture_coords: texture_coords[2],
         },
         // bottom left
-        Vertex { 
+        Vertex {
             position: [0, 0],
             texture_coords: texture_coords[1],
         },
@@ -133,7 +145,11 @@ fn main() {
         glium::Program::from_source(&display, vertex_shader_src, fragment_shader_src, None)
             .unwrap();
 
-    // draw the triangle here
+    let behavior = glium::uniforms::SamplerBehavior {
+        minify_filter: MinifySamplerFilter::Nearest,
+        magnify_filter: MagnifySamplerFilter::Nearest,
+        ..Default::default()
+    };
     #[allow(deprecated)]
     event_loop
         .run(move |ev, window_target| {
@@ -144,19 +160,43 @@ fn main() {
                     }
                     // We now need to render everyting in response to a RedrawRequested event due to the animation
                     glium::winit::event::WindowEvent::RedrawRequested => {
-                        // we update `t`
-
                         let mut target = display.draw();
-                        target.clear_color(0.0, 0.0, 1.0, 1.0);
+                        target.clear_color_and_depth((0.0, 0.0, 1.0, 1.0), 1.0);
 
-                        let uniforms = uniform! {
-                            matrix: [
-                                [0.25, 0.0, 0.0, 0.0],
-                                [0.0, 0.25, 0.0, 0.0],
-                                [0.0, 0.0, 0.25, 0.0],
-                                [ 0.0, 0.0, 0.0, 1.25f32],
-                            ],
-                            tex: &texture,
+                        let matrix = [
+                            [0.5, 0.0, 0.0, 0.0],
+                            [0.0, 0.5, 0.0, 0.0],
+                            [0.0, 0.0, 0.5, 0.0],
+                            [0.0, 0.0, -0.5, 1.0f32],
+                        ];
+
+                        let perspective = {
+                            let (width, height) = target.get_dimensions();
+                            let aspect_ratio = height as f32 / width as f32;
+
+                            let fov: f32 = 3.141592 / 3.0;
+                            let zfar = 1024.0;
+                            let znear = 0.1;
+
+                            let f = 1.0 / (fov / 2.0).tan();
+
+                            [
+                                [f * aspect_ratio, 0.0, 0.0, 0.0],
+                                [0.0, f, 0.0, 0.0],
+                                [0.0, 0.0, (zfar + znear) / (zfar - znear), 1.0],
+                                [0.0, 0.0, -(2.0 * zfar * znear) / (zfar - znear), 0.0],
+                            ]
+                        };
+
+                        let light = [-1.0, 0.4, 0.9f32];
+
+                        let params = glium::DrawParameters {
+                            depth: glium::Depth {
+                                test: glium::draw_parameters::DepthTest::IfLess,
+                                write: true,
+                                ..Default::default()
+                            },
+                            ..Default::default()
                         };
 
                         target
@@ -164,8 +204,13 @@ fn main() {
                                 &vertex_buffer,
                                 &indices,
                                 &program,
-                                &uniforms,
-                                &Default::default(),
+                                &uniform! {
+                                    matrix: matrix,
+                                    perspective: perspective,
+                                    u_light: light,
+                                    tex: glium::uniforms::Sampler(&texture, behavior),
+                                },
+                                &params,
                             )
                             .unwrap();
                         target.finish().unwrap();

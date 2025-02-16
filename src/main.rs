@@ -38,8 +38,10 @@ fn main() {
 
         in vec2 position;
 
+        uniform mat4 matrix;
+
         void main(){
-            gl_Position = vec4(position, 0.0, 1.0);
+            gl_Position = matrix * vec4(position, 0.0, 1.0);
         }
     "#;
 
@@ -59,33 +61,59 @@ fn main() {
         glium::Program::from_source(&display, vertex_shader_src, fragment_shader_src, None)
             .unwrap();
 
-    // creates a new frame
-    let mut target = display.draw();
-    // adds a background
-    target.clear_color(0.0, 0.0, 1.0, 1.0);
-
-    //draws the vertex vertex_buffer
-    target
-        .draw(
-            &vertex_buffer,
-            &indices,
-            &program,
-            &glium::uniforms::EmptyUniforms,
-            &Default::default(),
-        )
-        .unwrap();
-    // makes the frame visible
-    target.finish().unwrap();
-
     // runs until closed
+    #[allow(deprecated)]
     event_loop
         .run(move |event, window_target| {
             match event {
                 glium::winit::event::Event::WindowEvent { event, .. } => match event {
                     // quits the game when asked
                     glium::winit::event::WindowEvent::CloseRequested => window_target.exit(),
+
+                    //rendering
+                    glium::winit::event::WindowEvent::RedrawRequested => {
+                        let x = 0.0;
+
+                        let uniforms = uniform! {
+                            matrix: [
+                                [1.0, 0.0, 0.0, 0.0],
+                                [0.0, 1.0, 0.0, 0.0],
+                                [0.0, 0.0, 1.0, 0.0],
+                                [ x , 0.0, 0.0, 1.0f32],
+                            ],
+                        };
+
+                        // creates a new frame
+                        let mut target = display.draw();
+                        // adds a background
+                        target.clear_color(0.0, 0.0, 1.0, 1.0);
+
+                        //draws the vertex vertex_buffer
+                        target
+                            .draw(
+                                &vertex_buffer,
+                                indices,
+                                &program,
+                                &uniforms,
+                                &Default::default(),
+                            )
+                            .unwrap();
+                        // makes the frame visible
+                        target.finish().unwrap();
+                    }
+
+                    // when the window's size has changed.
+                    glium::winit::event::WindowEvent::Resized(window_size) => {
+                        display.resize(window_size.into());
+                    }
+
                     _ => (),
                 },
+
+                // updates the window
+                glium::winit::event::Event::AboutToWait => {
+                    window.request_redraw();
+                }
 
                 _ => (),
             };

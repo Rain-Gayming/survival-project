@@ -5,8 +5,9 @@ extern crate glium;
 #[derive(Copy, Clone)]
 struct Vertex {
     position: [f32; 2],
+    color: [f32; 3],
 }
-implement_vertex!(Vertex, position);
+implement_vertex!(Vertex, position, color);
 
 fn main() {
     let event_loop = glium::winit::event_loop::EventLoop::builder()
@@ -20,12 +21,15 @@ fn main() {
 
     let vertex1 = Vertex {
         position: [-0.5, -0.5],
+        color: [1.0, 0.0, 0.0],
     };
     let vertex2 = Vertex {
         position: [0.5, 0.5],
+        color: [0.0, 0.0, 1.0],
     };
     let vertex3 = Vertex {
         position: [0.5, -0.5],
+        color: [0.0, 1.0, 0.0],
     };
     let shape = vec![vertex1, vertex2, vertex3];
 
@@ -38,9 +42,13 @@ fn main() {
 
         in vec2 position;
 
+        in vec3 color;
+        out vec3 vertex_color;
+
         uniform mat4 matrix;
 
         void main(){
+            vertex_color = color;
             gl_Position = matrix * vec4(position, 0.0, 1.0);
         }
     "#;
@@ -48,11 +56,12 @@ fn main() {
     // fragment shader (colour)
     let fragment_shader_src = r#"
         #version 140
-
+        
+        in vec3 vertex_color;
         out vec4 color;
 
         void main(){
-            color = vec4(1.0, 0.0, 0.0, 1.0);
+            color = vec4(vertex_color, 1.0);
         }
     "#;
 

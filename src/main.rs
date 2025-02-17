@@ -1,4 +1,4 @@
-use glium::Surface;
+use glium::{backend::glutin::simple_window_builder::GliumEventLoop, Surface};
 #[macro_use]
 extern crate glium;
 
@@ -108,11 +108,15 @@ fn main() {
                         let light = [-1.0, 0.5, 0.9f32];
 
                         let params = glium::DrawParameters {
+                            // depth buffer
                             depth: glium::Depth {
                                 test: glium::draw_parameters::DepthTest::IfLess,
                                 write: true,
                                 ..Default::default()
                             },
+                            // back face culling
+                            backface_culling: glium::draw_parameters::BackfaceCullingMode::CullClockwise,
+
                             ..Default::default()
                         };
 

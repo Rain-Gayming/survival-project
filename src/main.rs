@@ -31,11 +31,13 @@ fn main() {
         in vec3 normal;
 
         out vec3 v_normal;
+
+        uniform mat4 perspective;
         uniform mat4 matrix;
 
         void main(){
             v_normal = transpose(inverse(mat3(matrix))) * normal;
-            gl_Position = matrix * vec4(position, 1.0);
+            gl_Position = perspective * matrix * vec4(position, 1.0);
         }
     "#;
 
@@ -83,10 +85,26 @@ fn main() {
                         let matrix = [
                             [0.01, 0.0, 0.0, 0.0],
                             [0.0, 0.01, 0.0, 0.0],
-                            [0.0, 0.0, 0.01, 0.0],
-                            [0.0, 0.0, 0.0, 1.0f32],
+                            [0.0, 0.0,  0.01, 0.0],
+                            [0.0, 0.0,  2.25, 1.0f32],
                         ];
+                        let perspective = {
+                            let (width, height) = target.get_dimensions();
+                            let aspect_ratio = height as f32 / width as f32;
 
+                            let fov: f32 = std::f32::consts::PI / 3.0;
+                            let zfar = 1024.0;
+                            let znear = 0.1;
+
+                            let f = 1.0 / (fov / 2.0).tan();
+
+                            [
+                                [f * aspect_ratio, 0.0, 0.0, 0.0],
+                                [0.0, f, 0.0, 0.0],
+                                [0.0, 0.0, (zfar + znear) / (zfar - znear), 1.0],
+                                [0.0, 0.0, -(2.0 * zfar * znear) / (zfar - znear), 0.0],
+                            ]
+                        };
                         let light = [-1.0, 0.5, 0.9f32];
 
                         let params = glium::DrawParameters {
@@ -104,7 +122,7 @@ fn main() {
                                 (&positions, &normals),
                                 &indices,
                                 &program,
-                                &uniform! {matrix: matrix, u_light: light},
+                                &uniform! {matrix: matrix, perspective: perspective, u_light: light},
                                 &params,
                             )
                             .unwrap();

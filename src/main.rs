@@ -2,12 +2,7 @@ use glium::Surface;
 #[macro_use]
 extern crate glium;
 
-#[derive(Copy, Clone)]
-struct Vertex {
-    position: [f32; 2],
-    color: [f32; 3],
-}
-implement_vertex!(Vertex, position, color);
+mod teapot;
 
 fn main() {
     let event_loop = glium::winit::event_loop::EventLoop::builder()
@@ -19,37 +14,26 @@ fn main() {
         .with_title("voxel game")
         .build(&event_loop);
 
-    let vertex1 = Vertex {
-        position: [-0.5, -0.5],
-        color: [1.0, 0.0, 0.0],
-    };
-    let vertex2 = Vertex {
-        position: [0.5, 0.5],
-        color: [0.0, 0.0, 1.0],
-    };
-    let vertex3 = Vertex {
-        position: [0.5, -0.5],
-        color: [0.0, 1.0, 0.0],
-    };
-    let shape = vec![vertex1, vertex2, vertex3];
-
-    let vertex_buffer = glium::VertexBuffer::new(&display, &shape).unwrap();
-    let indices = glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList);
+    let positions = glium::VertexBuffer::new(&display, &teapot::VERTICES).unwrap();
+    let normals = glium::VertexBuffer::new(&display, &teapot::NORMALS).unwrap();
+    let indices = glium::IndexBuffer::new(
+        &display,
+        glium::index::PrimitiveType::TrianglesList,
+        &teapot::INDICES,
+    )
+    .unwrap();
 
     // vertex shader
     let vertex_shader_src = r#"
         #version 140
 
-        in vec2 position;
-
-        in vec3 color;
-        out vec3 vertex_color;
+        in vec3 position;
+        in vec3 normal;
 
         uniform mat4 matrix;
 
         void main(){
-            vertex_color = color;
-            gl_Position = matrix * vec4(position, 0.0, 1.0);
+             gl_Position = matrix * vec4(position, 1.0);
         }
     "#;
 
@@ -57,11 +41,10 @@ fn main() {
     let fragment_shader_src = r#"
         #version 140
         
-        in vec3 vertex_color;
         out vec4 color;
 
         void main(){
-            color = vec4(vertex_color, 1.0);
+            color = vec4(1.0, 1.0, 0.0, 1.0);
         }
     "#;
 
@@ -81,29 +64,26 @@ fn main() {
 
                     //rendering
                     glium::winit::event::WindowEvent::RedrawRequested => {
-                        let x = 0.0;
-
-                        let uniforms = uniform! {
-                            matrix: [
-                                [1.0, 0.0, 0.0, 0.0],
-                                [0.0, 1.0, 0.0, 0.0],
-                                [0.0, 0.0, 1.0, 0.0],
-                                [ x , 0.0, 0.0, 1.0f32],
-                            ],
-                        };
-
                         // creates a new frame
                         let mut target = display.draw();
                         // adds a background
                         target.clear_color(0.0, 0.0, 1.0, 1.0);
 
+                        let x = 0.0;
+
+                        let matrix = [
+                            [0.01, 0.0, 0.0, 0.0],
+                            [0.0, 0.01, 0.0, 0.0],
+                            [0.0, 0.0, 0.01, 0.0],
+                            [0.0, 0.0, 0.0, 1.0f32],
+                        ];
                         //draws the vertex vertex_buffer
                         target
                             .draw(
-                                &vertex_buffer,
-                                indices,
+                                (&positions, &normals),
+                                &indices,
                                 &program,
-                                &uniforms,
+                                &uniform! {matrix: matrix},
                                 &Default::default(),
                             )
                             .unwrap();

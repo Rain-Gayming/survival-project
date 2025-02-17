@@ -74,8 +74,9 @@ fn main() {
                     glium::winit::event::WindowEvent::RedrawRequested => {
                         // creates a new frame
                         let mut target = display.draw();
-                        // adds a background
-                        target.clear_color(0.0, 0.0, 1.0, 1.0);
+
+                        // adds a background and depth buffer
+                        target.clear_color_and_depth((0.0, 0.0, 1.0, 1.0), 1.0);
 
                         let x = 0.0;
 
@@ -87,6 +88,16 @@ fn main() {
                         ];
 
                         let light = [-1.0, 0.5, 0.9f32];
+
+                        let params = glium::DrawParameters {
+                            depth: glium::Depth {
+                                test: glium::draw_parameters::DepthTest::IfLess,
+                                write: true,
+                                ..Default::default()
+                            },
+                            ..Default::default()
+                        };
+
                         //draws the vertex vertex_buffer
                         target
                             .draw(
@@ -94,7 +105,7 @@ fn main() {
                                 &indices,
                                 &program,
                                 &uniform! {matrix: matrix, u_light: light},
-                                &Default::default(),
+                                &params,
                             )
                             .unwrap();
                         // makes the frame visible

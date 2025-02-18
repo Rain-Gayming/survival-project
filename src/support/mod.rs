@@ -1,2 +1,3 @@
 pub mod camera;
-pub mod teapot;
+pub mod cube;
+pub mod rendering_info;

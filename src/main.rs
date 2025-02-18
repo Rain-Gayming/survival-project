@@ -2,7 +2,8 @@ use glium::{backend::glutin::simple_window_builder::GliumEventLoop, Surface};
 #[macro_use]
 extern crate glium;
 
-mod teapot;
+mod support;
+use support::cube::*;
 
 fn main() {
     let event_loop = glium::winit::event_loop::EventLoop::builder()
@@ -14,12 +15,12 @@ fn main() {
         .with_title("voxel game")
         .build(&event_loop);
 
-    let positions = glium::VertexBuffer::new(&display, &teapot::VERTICES).unwrap();
-    let normals = glium::VertexBuffer::new(&display, &teapot::NORMALS).unwrap();
+    let positions = glium::VertexBuffer::new(&display, &support::cube::VERTICES).unwrap();
+    let normals = glium::VertexBuffer::new(&display, &support::cube::NORMALS).unwrap();
     let indices = glium::IndexBuffer::new(
         &display,
         glium::index::PrimitiveType::TrianglesList,
-        &teapot::INDICES,
+        &support::cube::INDICES,
     )
     .unwrap();
 
@@ -46,6 +47,7 @@ fn main() {
     // fragment shader (colour)
     let fragment_shader_src = r#"
         #version 140
+       
         
         out vec4 color;
         
@@ -85,9 +87,9 @@ fn main() {
                         let x = 0.0;
 
                         let model = [
-                            [0.01, 0.0, 0.0, 0.0],
-                            [0.0, 0.01, 0.0, 0.0],
-                            [0.0, 0.0,  0.01, 0.0],
+                            [0.5, 0.0, 0.0, 0.0],
+                            [0.0, 0.5, 0.0, 0.0],
+                            [0.0, 0.0,  0.5, 0.0],
                             [0.0, 0.0,  2.25, 1.0f32],
                         ];
                         let perspective = {
